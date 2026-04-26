@@ -23,6 +23,10 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
 .logo span { color: var(--text); }
 .btn-add { width: 36px; height: 36px; border-radius: 50%; background: var(--sky); color: white; border: none; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
 .btn-add:active { background: var(--sky-dark); }
+.btn-hist { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-soft); border: 1.5px solid var(--border); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+.btn-hist:active { background: var(--sky-light); }
+.btn-hist { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-soft); border: 1.5px solid var(--border); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+.btn-hist:active { background: var(--sky-light); }
 
 /* SEARCH */
 .search-wrap { padding: 1rem 1.25rem 0.75rem; max-width: 640px; margin: 0 auto; }
@@ -161,6 +165,51 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
 .status-msg { font-size: 0.85rem; text-align: center; padding: 0.6rem; border-radius: 8px; margin-top: 0.75rem; }
 .status-success { background: #f0fdf4; color: #15803d; }
 .status-error { background: var(--red-light); color: #dc2626; }
+
+/* HISTORIAL */
+.hist-view { display:none; position:fixed; inset:0; background:var(--bg); z-index:200; overflow-y:auto; }
+.hist-header { background:var(--bg); border-bottom:1.5px solid var(--border); padding:0 1.25rem; position:sticky; top:0; z-index:10; }
+.hist-header-inner { max-width:640px; margin:0 auto; display:flex; align-items:center; height:56px; gap:0.75rem; }
+.hist-title { flex:1; font-family:"DM Serif Display",serif; font-size:1.1rem; color:var(--text); }
+.btn-new-service { background:var(--sky); color:white; border:none; border-radius:20px; padding:0.35rem 0.85rem; font-family:"DM Sans",sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.hist-search-wrap { padding:0.75rem 1.25rem; max-width:640px; margin:0 auto; }
+.hist-stats { padding:0 1.25rem 0.5rem; max-width:640px; margin:0 auto; font-size:0.8rem; color:var(--text-muted); }
+.hist-list { max-width:640px; margin:0 auto; padding:0 1.25rem 5rem; }
+.servicio-item { border-bottom:1px solid var(--border); }
+.servicio-item:last-child { border-bottom:none; }
+.servicio-header { display:flex; align-items:center; justify-content:space-between; padding:0.9rem 0; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.servicio-fecha { font-size:0.95rem; font-weight:600; color:var(--text); }
+.servicio-count { font-size:0.78rem; color:var(--text-muted); margin-top:2px; }
+.servicio-chevron { color:var(--text-light); font-size:1rem; transition:transform 0.2s; flex-shrink:0; }
+.servicio-chevron.open { transform:rotate(90deg); }
+.servicio-body { display:none; padding-bottom:0.75rem; }
+.servicio-body.open { display:block; }
+.servicio-song-row { display:flex; align-items:center; justify-content:space-between; padding:0.35rem 0; border-bottom:1px solid var(--border); }
+.servicio-song-row:last-child { border-bottom:none; }
+.servicio-song-name { font-size:0.9rem; color:var(--text); flex:1; min-width:0; }
+.servicio-song-name a { color:var(--sky); text-decoration:none; font-weight:500; }
+.servicio-song-name a:active { text-decoration:underline; }
+.servicio-song-key { background:var(--sky-light); color:var(--sky-dark); font-size:0.72rem; font-weight:600; padding:0.15rem 0.5rem; border-radius:12px; margin-left:0.5rem; flex-shrink:0; }
+.servicio-song-artist { font-size:0.75rem; color:var(--text-light); margin-left:0.4rem; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; }
+.servicio-notas { font-size:0.78rem; color:var(--text-muted); font-style:italic; margin-top:0.4rem; padding-top:0.4rem; border-top:1px dashed var(--border); }
+.servicio-actions { display:flex; gap:0.4rem; margin-top:0.6rem; }
+.btn-del-service { background:none; border:1px solid #fecaca; border-radius:8px; padding:0.3rem 0.6rem; font-size:0.75rem; color:var(--red); cursor:pointer; -webkit-tap-highlight-color:transparent; }
+
+/* ADD SERVICE MODAL */
+.service-song-picker { border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:0.75rem; }
+.service-song-picker input { width:100%; padding:0.6rem 1rem; border:none; border-bottom:1px solid var(--border); font-family:"DM Sans",sans-serif; font-size:0.9rem; outline:none; background:var(--bg-soft); }
+.picker-list { max-height:160px; overflow-y:auto; }
+.picker-item { padding:0.6rem 1rem; font-size:0.88rem; cursor:pointer; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; }
+.picker-item:last-child { border-bottom:none; }
+.picker-item:active { background:var(--sky-light); }
+.picker-key { font-size:0.75rem; color:var(--sky-dark); background:var(--sky-light); padding:0.1rem 0.4rem; border-radius:10px; }
+.selected-songs { margin-bottom:0.75rem; }
+.selected-song-tag { display:flex; align-items:center; justify-content:space-between; background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; padding:0.5rem 0.75rem; margin-bottom:0.4rem; }
+.selected-song-info { flex:1; min-width:0; }
+.selected-song-title { font-size:0.88rem; font-weight:500; color:var(--text); }
+.selected-song-key-edit { width:52px; padding:0.25rem 0.4rem; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; text-align:center; margin-left:0.5rem; outline:none; }
+.selected-song-key-edit:focus { border-color:var(--sky-mid); }
+.btn-remove-song { background:none; border:none; color:var(--red); font-size:1rem; cursor:pointer; padding:0 0.25rem; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -169,7 +218,10 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
 <header>
   <div class="header-inner">
     <div class="logo">Canciones <span>ILV</span></div>
-    <button class="btn-add" onclick="openPinModal('add')">+</button>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <button class="btn-hist" onclick="openHistorial()" title="Historial">📅</button>
+      <button class="btn-add" onclick="openPinModal('add')">+</button>
+    </div>
   </div>
 </header>
 <div class="search-wrap">
@@ -203,6 +255,7 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
     </div>
     <button class="btn-reset" onclick="resetTranspose()">Original</button>
   </div>
+  <div id="last-played" style="max-width:640px;margin:0 auto;padding:0 1.25rem;display:none;"></div>
   <!-- COMMENTS TOP -->
   <div class="comments-top" id="comments-top"></div>
   <div class="song-content" id="song-content"></div>
@@ -217,6 +270,57 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
       <br>
       <button class="btn-comment" onclick="submitComment()" style="margin-top:0.5rem;">Comentar</button>
     </div>
+  </div>
+</div>
+
+
+<!-- HISTORIAL VIEW -->
+<div class="hist-view" id="hist-view">
+  <div class="hist-header">
+    <div class="hist-header-inner">
+      <button class="btn-back" onclick="closeHistorial()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Volver
+      </button>
+      <div class="hist-title">Historial</div>
+      <button class="btn-new-service" onclick="openPinModal('newService')">+ Domingo</button>
+    </div>
+  </div>
+  <div class="hist-search-wrap">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="hist-search" placeholder="Buscar canción en el historial..." oninput="filterHistorial(this.value)">
+    </div>
+  </div>
+  <div class="hist-stats"><span id="hist-stats-text"></span></div>
+  <div class="hist-list" id="hist-list"><div class="loading-state">Cargando historial...</div></div>
+</div>
+
+<!-- ADD SERVICE MODAL -->
+<div class="modal-overlay" id="service-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="service-modal-title">Registrar domingo</div>
+    <div class="modal-subtitle">Selecciona las canciones que tocaron</div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" type="date" id="service-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas (opcional)</label>
+      <input class="form-input" type="text" id="service-notes" placeholder="Ej: Dirigió Wills, Domingo de Resurrección...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Buscar y agregar canciones</label>
+      <div class="service-song-picker">
+        <input type="text" id="service-song-search" placeholder="Buscar canción..." oninput="filterSongPicker(this.value)">
+        <div class="picker-list" id="picker-list"></div>
+      </div>
+    </div>
+    <div class="selected-songs" id="selected-songs"></div>
+    <button class="btn-primary" onclick="saveService()" id="btn-save-service">Guardar domingo</button>
+    <button class="btn-secondary" onclick="closeServiceModal()">Cancelar</button>
+    <div id="service-status" style="display:none;"></div>
   </div>
 </div>
 
@@ -344,7 +448,7 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, addDoc as addComment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, setDoc, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const app = initializeApp({
   apiKey: "AIzaSyAUOegWFr2lNxmTzAfp88toS2wrgF3JXHI",
   authDomain: "canciones-ilv.firebaseapp.com",
@@ -354,15 +458,17 @@ const app = initializeApp({
   appId: "1:1001544377171:web:34cb3bd668b627a792f7a6"
 });
 const db = getFirestore(app);
-window._db = db;
+window._db = db; window._db.collection = (name) => collection(db, name);
 window._col = (name) => collection(db, name);
 window._getDocs = getDocs;
 window._addDoc = addDoc;
 window._updateDoc = updateDoc;
 window._deleteDoc = deleteDoc;
+window._setDoc = setDoc;
 window._doc = (path, id) => doc(db, path, id);
 window._query = query;
 window._orderBy = orderBy;
+window._orderByDesc = (field) => orderBy(field, "desc");
 window.loadSongs();
 </script>
 
@@ -444,6 +550,7 @@ window.openSong = function(id) {
   document.getElementById("song-header-title").textContent = currentSong.title;
   renderSong();
   loadComments(id);
+  loadLastPlayed(currentSong.title);
   window.scrollTo(0, 0);
 };
 
@@ -573,6 +680,8 @@ function checkPin() {
     else if (pinAction === "edit") openEditModal();
     else if (pinAction === "delete") openDeleteModal();
     else if (pinAction === "deleteComment") deleteComment(commentToDelete);
+    else if (pinAction === "newService") openServiceModal();
+    else if (pinAction === "deleteService") confirmDeleteService();
     return;
   }
   for (let i = 0; i < 4; i++) document.getElementById(`dot-${i}`).className = "pin-dot error";
@@ -800,6 +909,239 @@ window.confirmDelete = async function() {
     status.style.display = "block";
   }
 };
+
+// ── HISTORIAL ──────────────────────────────────────────────
+let allServicios = [], filteredServicios = [], serviceToDelete = null;
+let selectedSongs = []; // [{id, title, key, artist}]
+let editingServiceId = null;
+
+window.openHistorial = async function() {
+  document.getElementById("hist-view").style.display = "block";
+  document.getElementById("hist-list").innerHTML = '<div class="loading-state">Cargando historial...</div>';
+  try {
+    const snap = await window._getDocs(window._query(window._col("servicios"), window._orderByDesc("fecha")));
+    allServicios = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    filteredServicios = allServicios;
+    renderHistorial(allServicios);
+  } catch(e) {
+    document.getElementById("hist-list").innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Error al cargar historial.</p></div>';
+  }
+};
+
+window.closeHistorial = function() {
+  document.getElementById("hist-view").style.display = "none";
+};
+
+function normalizeStr(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+}
+
+function songExistsInCancionero(nombre) {
+  const n = normalizeStr(nombre);
+  return allSongs.find(s => normalizeStr(s.title) === n || normalizeStr(s.title).includes(n) || n.includes(normalizeStr(s.title)));
+}
+
+function renderHistorial(servicios) {
+  const list = document.getElementById("hist-list");
+  const stats = document.getElementById("hist-stats-text");
+  stats.textContent = `${servicios.length} domingo${servicios.length !== 1 ? "s" : ""}`;
+  if (!servicios.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>No hay servicios registrados.</p></div>';
+    return;
+  }
+  list.innerHTML = servicios.map((s, idx) => {
+    const notasUnicas = [...new Set(s.canciones.map(c => c.notas).filter(n => n && n.trim()))];
+    const cancionesHtml = (s.canciones || []).map(c => {
+      const match = songExistsInCancionero(c.nombre);
+      const nameHtml = match
+        ? `<a href="#" onclick="closeHistorial();openSong('${match.id}');return false;">${c.nombre}</a>`
+        : c.nombre;
+      return `<div class="servicio-song-row">
+        <span class="servicio-song-name">${nameHtml}</span>
+        <span class="servicio-song-key">${c.tono || "?"}</span>
+        <span class="servicio-song-artist">${c.artista || ""}</span>
+      </div>`;
+    }).join("");
+    const notasHtml = notasUnicas.length ? `<div class="servicio-notas">📝 ${notasUnicas.join(" · ")}</div>` : "";
+    return `<div class="servicio-item">
+      <div class="servicio-header" onclick="toggleServicio('srv-${idx}')">
+        <div>
+          <div class="servicio-fecha">${s.fechaDisplay || s.fecha}</div>
+          <div class="servicio-count">${s.canciones.length} canción${s.canciones.length !== 1 ? "es" : ""}</div>
+        </div>
+        <span class="servicio-chevron" id="chev-${idx}">›</span>
+      </div>
+      <div class="servicio-body" id="srv-${idx}">
+        ${cancionesHtml}
+        ${notasHtml}
+        <div class="servicio-actions">
+          <button class="btn-del-service" onclick="requestDeleteService('${s.id}')">🗑 Eliminar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+window.toggleServicio = function(id) {
+  const body = document.getElementById(id);
+  const idx = id.replace("srv-", "");
+  const chev = document.getElementById("chev-" + idx);
+  const isOpen = body.classList.contains("open");
+  body.classList.toggle("open", !isOpen);
+  chev.classList.toggle("open", !isOpen);
+};
+
+window.filterHistorial = function(q) {
+  if (!q.trim()) { filteredServicios = allServicios; renderHistorial(allServicios); return; }
+  const n = normalizeStr(q);
+  filteredServicios = allServicios.filter(s =>
+    s.canciones.some(c => normalizeStr(c.nombre).includes(n))
+  );
+  renderHistorial(filteredServicios);
+  // Auto-expand matching services
+  setTimeout(() => {
+    filteredServicios.forEach((s, idx) => {
+      const body = document.getElementById(`srv-${idx}`);
+      const chev = document.getElementById(`chev-${idx}`);
+      if (body) { body.classList.add("open"); chev.classList.add("open"); }
+    });
+  }, 50);
+};
+
+// ── ADD SERVICE MODAL ──────────────────────────────────────
+function openServiceModal(serviceId) {
+  editingServiceId = serviceId || null;
+  selectedSongs = [];
+  document.getElementById("service-modal-title").textContent = serviceId ? "Editar domingo" : "Registrar domingo";
+  // Set today's date as default (next Sunday logic)
+  const today = new Date();
+  document.getElementById("service-date").value = today.toISOString().split("T")[0];
+  document.getElementById("service-notes").value = "";
+  document.getElementById("service-song-search").value = "";
+  document.getElementById("service-status").style.display = "none";
+  document.getElementById("btn-save-service").disabled = false;
+  document.getElementById("btn-save-service").textContent = "Guardar domingo";
+  renderSelectedSongs();
+  filterSongPicker("");
+  document.getElementById("service-modal").classList.add("open");
+}
+window.closeServiceModal = function() { document.getElementById("service-modal").classList.remove("open"); };
+
+window.filterSongPicker = function(q) {
+  const filtered = q.trim()
+    ? allSongs.filter(s => s.title.toLowerCase().includes(q.toLowerCase()))
+    : allSongs;
+  document.getElementById("picker-list").innerHTML = filtered.slice(0, 30).map(s => `
+    <div class="picker-item" onclick="addSongToService('${s.id}','${s.title.replace(/'/g,"\'")}','${s.key || "C"}','${(s.artist||"").replace(/'/g,"\'")}')">
+      <span>${s.title}</span>
+      <span class="picker-key">${s.key || "C"}</span>
+    </div>`).join("");
+};
+
+window.addSongToService = function(id, title, key, artist) {
+  if (selectedSongs.find(s => s.id === id)) return;
+  selectedSongs.push({ id, title, key, artist });
+  renderSelectedSongs();
+  document.getElementById("service-song-search").value = "";
+  filterSongPicker("");
+};
+
+function renderSelectedSongs() {
+  document.getElementById("selected-songs").innerHTML = selectedSongs.map((s, i) => `
+    <div class="selected-song-tag">
+      <div class="selected-song-info">
+        <div class="selected-song-title">${s.title}</div>
+      </div>
+      <input class="selected-song-key-edit" value="${s.key}" onchange="selectedSongs[${i}].key=this.value" title="Tono">
+      <button class="btn-remove-song" onclick="removeSongFromService(${i})">✕</button>
+    </div>`).join("");
+}
+
+window.removeSongFromService = function(i) {
+  selectedSongs.splice(i, 1);
+  renderSelectedSongs();
+};
+
+window.saveService = async function() {
+  const fechaVal = document.getElementById("service-date").value;
+  const notas = document.getElementById("service-notes").value.trim();
+  if (!fechaVal) { alert("Por favor selecciona una fecha."); return; }
+  if (!selectedSongs.length) { alert("Agrega al menos una canción."); return; }
+
+  const btn = document.getElementById("btn-save-service");
+  const status = document.getElementById("service-status");
+  btn.disabled = true; btn.textContent = "Guardando...";
+
+  const [y, m, d] = fechaVal.split("-");
+  const months = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const fechaDisplay = `${parseInt(d)} de ${months[parseInt(m)-1]}, ${y}`;
+
+  const data = {
+    fecha: fechaVal,
+    fechaDisplay,
+    canciones: selectedSongs.map(s => ({
+      nombre: s.title, tono: s.key, artista: s.artist, notas
+    }))
+  };
+
+  try {
+    await window._setDoc(window._doc("servicios", fechaVal), data);
+    const existing = allServicios.findIndex(s => s.id === fechaVal);
+    if (existing >= 0) allServicios[existing] = { id: fechaVal, ...data };
+    else allServicios.unshift({ id: fechaVal, ...data });
+    allServicios.sort((a, b) => b.fecha.localeCompare(a.fecha));
+    renderHistorial(allServicios);
+    status.textContent = "✓ Domingo guardado";
+    status.className = "status-msg status-success";
+    status.style.display = "block";
+    btn.textContent = "¡Guardado!";
+    setTimeout(() => window.closeServiceModal(), 1500);
+  } catch(e) {
+    status.textContent = "Error al guardar.";
+    status.className = "status-msg status-error";
+    status.style.display = "block";
+    btn.disabled = false; btn.textContent = "Guardar domingo";
+  }
+};
+
+// ── DELETE SERVICE ─────────────────────────────────────────
+window.requestDeleteService = function(id) {
+  serviceToDelete = id;
+  openPinModal("deleteService");
+};
+
+window.confirmDeleteService = async function() {
+  if (!serviceToDelete) return;
+  try {
+    await window._deleteDoc(window._doc("servicios", serviceToDelete));
+    allServicios = allServicios.filter(s => s.id !== serviceToDelete);
+    renderHistorial(allServicios);
+    serviceToDelete = null;
+  } catch(e) { alert("Error al eliminar."); }
+};
+
+// ── LAST PLAYED IN SONG VIEW ───────────────────────────────
+async function loadLastPlayed(songTitle) {
+  const container = document.getElementById("last-played");
+  if (!container) return;
+  try {
+    const snap = await window._getDocs(window._query(window._col("servicios"), window._orderByDesc("fecha")));
+    const matches = [];
+    snap.docs.forEach(d => {
+      const s = d.data();
+      (s.canciones || []).forEach(c => {
+        if (normalizeStr(c.nombre).includes(normalizeStr(songTitle)) || normalizeStr(songTitle).includes(normalizeStr(c.nombre))) {
+          if (matches.length < 3) matches.push({ fecha: s.fechaDisplay || s.fecha, tono: c.tono });
+        }
+      });
+    });
+    if (!matches.length) { container.style.display = "none"; return; }
+    container.style.display = "block";
+    container.innerHTML = `<div class="section-label" style="margin-top:1.5rem;">Últimas veces tocada</div>` +
+      matches.map(m => `<div style="font-size:0.85rem;color:var(--text-muted);padding:0.25rem 0;">📅 ${m.fecha} · tono ${m.tono}</div>`).join("");
+  } catch(e) { if(container) container.style.display = "none"; }
+}
+
 </script>
 </body>
 </html>

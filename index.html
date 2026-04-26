@@ -78,6 +78,15 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
 .lyric-line { display: block; font-size: 1rem; color: var(--text); white-space: pre-wrap; line-height: 1.5; }
 
 /* COMMENTS */
+.comments-top { max-width: 640px; margin: 0 auto; padding: 0 1.25rem; }
+.comments-top:not(:empty) { padding-bottom: 0.5rem; border-bottom: 1.5px solid var(--border); margin-bottom: 0; }
+.comment-top-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
+.comment-top-item:last-child { border-bottom: none; }
+.comment-top-body { flex: 1; min-width: 0; }
+.comment-top-author { font-size: 0.75rem; font-weight: 600; color: var(--sky-dark); margin-bottom: 0.15rem; }
+.comment-top-text { font-size: 0.88rem; color: var(--text); line-height: 1.5; }
+.comment-top-time { font-size: 0.7rem; color: var(--text-light); margin-top: 0.15rem; }
+.btn-del-comment { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #fecaca; background: var(--red-light); color: var(--red); font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; -webkit-tap-highlight-color: transparent; }
 .comments-section { max-width: 640px; margin: 0 auto; padding: 0 1.25rem 5rem; border-top: 1.5px solid var(--border); }
 .comments-title { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 1rem 0 0.75rem; }
 .comment-item { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
@@ -194,11 +203,12 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
     </div>
     <button class="btn-reset" onclick="resetTranspose()">Original</button>
   </div>
+  <!-- COMMENTS TOP -->
+  <div class="comments-top" id="comments-top"></div>
   <div class="song-content" id="song-content"></div>
-  <!-- COMMENTS -->
+  <!-- COMMENT FORM -->
   <div class="comments-section">
-    <div class="comments-title">Comentarios</div>
-    <div id="comments-list"></div>
+    <div class="comments-title">Agregar comentario</div>
     <div class="comment-form">
       <div class="comment-input-row">
         <input class="comment-name-input" id="comment-name" placeholder="Tu nombre" maxlength="40">
@@ -477,30 +487,46 @@ function applyFontSize() {
 }
 
 // ── COMMENTS ──────────────────────────────────────────────
-async function loadComments(songId) {
-  document.getElementById("comments-list").innerHTML = `<div class="no-comments">Cargando comentarios...</div>`;
-  try {
-    const snap = await window._getDocs(window._query(window._col(`canciones/${songId}/comentarios`), window._orderBy("createdAt")));
-    const comments = snap.docs.map(d => d.data());
-    if (!comments.length) {
-      document.getElementById("comments-list").innerHTML = `<div class="no-comments">Sé el primero en comentar.</div>`;
-      return;
-    }
-    document.getElementById("comments-list").innerHTML = comments.map(c => `
-      <div class="comment-item">
-        <div class="comment-author">${c.author || "Anónimo"}</div>
-        <div class="comment-text">${c.text}</div>
-        <div class="comment-time">${formatDate(c.createdAt)}</div>
-      </div>`).join("");
-  } catch(e) {
-    document.getElementById("comments-list").innerHTML = `<div class="no-comments">No se pudieron cargar los comentarios.</div>`;
-  }
-}
+let commentToDelete = null;
 
 function formatDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
   return d.toLocaleDateString("es-SV", { day: "numeric", month: "short", year: "numeric" });
+}
+
+async function loadComments(songId) {
+  const top = document.getElementById("comments-top");
+  top.innerHTML = "";
+  try {
+    const snap = await window._getDocs(window._query(window._col(`canciones/${songId}/comentarios`), window._orderBy("createdAt")));
+    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (!docs.length) { top.innerHTML = ""; return; }
+    top.innerHTML = docs.map(c => `
+      <div class="comment-top-item" id="ctop-${c.id}">
+        <div class="comment-top-body">
+          <div class="comment-top-author">${c.author || "Anónimo"}</div>
+          <div class="comment-top-text">${c.text}</div>
+          <div class="comment-top-time">${formatDate(c.createdAt)}</div>
+        </div>
+        <button class="btn-del-comment" onclick="requestDeleteComment('${c.id}')" title="Eliminar">✕</button>
+      </div>`).join("");
+  } catch(e) { top.innerHTML = ""; }
+}
+
+window.requestDeleteComment = function(commentId) {
+  commentToDelete = commentId;
+  pinAction = "deleteComment";
+  openPinModal("deleteComment");
+};
+
+async function deleteComment(commentId) {
+  try {
+    await window._deleteDoc(window._doc(`canciones/${currentSong.id}/comentarios`, commentId));
+    const el = document.getElementById(`ctop-${commentId}`);
+    if (el) el.remove();
+    commentToDelete = null;
+  } catch(e) { alert("Error al eliminar el comentario."); }
 }
 
 window.submitComment = async function() {
@@ -546,6 +572,7 @@ function checkPin() {
     if (pinAction === "add") openAddModal();
     else if (pinAction === "edit") openEditModal();
     else if (pinAction === "delete") openDeleteModal();
+    else if (pinAction === "deleteComment") deleteComment(commentToDelete);
     return;
   }
   for (let i = 0; i < 4; i++) document.getElementById(`dot-${i}`).className = "pin-dot error";

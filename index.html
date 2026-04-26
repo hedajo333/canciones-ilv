@@ -372,11 +372,20 @@ function transposeNote(n, st) {
 }
 function transposeLine(line, st) {
   if (!st || !line.trim()) return line;
-  return line.replace(/([A-G][#b]?)(?=[^a-z]|$)/g, (m, note, offset, str) => {
-    const before = str[offset - 1];
-    if (before && /[a-z]/.test(before)) return m;
-    return m.replace(note, transposeNote(note, st));
-  });
+  // Match full chord: root + suffix + optional /bass
+  // Root: A-G with optional # or b
+  // Suffix: maj7, m, dim, aug, sus2, sus4, add9, 7, etc.
+  // Bass: /A-G with optional # or b
+  return line.replace(/([A-G][#b]?)((?:maj7?|maj|min|m|dim|aug|sus[24]?|add9?|[0-9]+)*)((?:\/[A-G][#b]?)?)/g,
+    (match, root, suffix, bass, offset, str) => {
+      // Skip if preceded by a lowercase letter (inside a word like "Dm" already matched root)
+      const before = str[offset - 1];
+      if (before && /[a-z]/.test(before)) return match;
+      const newRoot = transposeNote(root, st);
+      const newBass = bass ? '/' + transposeNote(bass.slice(1), st) : '';
+      return newRoot + suffix + newBass;
+    }
+  );
 }
 
 // ── FIREBASE LOAD ──────────────────────────────────────────

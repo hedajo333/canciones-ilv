@@ -142,7 +142,7 @@ header { background: var(--bg); border-bottom: 1.5px solid var(--border); paddin
 .processing-box p { font-size: 0.9rem; color: var(--text-muted); }
 
 /* PREVIEW */
-.preview-box { background: var(--bg-soft); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1rem 0; }
+.preview-box { background: var(--bg-soft); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1rem 0; max-height: 55vh; overflow-y: auto; }
 .preview-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--text); }
 .preview-info { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; margin-bottom: 0.75rem; }
 .preview-section { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sky-dark); background: var(--sky-light); display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; margin: 0.75rem 0 0.4rem; }
@@ -660,14 +660,13 @@ window.processSong = function() {
 
 function renderPreview(song, containerId) {
   let html = `<div class="preview-title">${song.title}</div><div class="preview-info">${song.artist} · Tono: ${song.key} · ${song.tempo}</div>`;
-  (song.sections || []).slice(0, 2).forEach(sec => {
+  (song.sections || []).forEach(sec => {
     html += `<div class="preview-section">${sec.label}</div>`;
-    (sec.content || []).slice(0, 4).forEach(p => {
+    (sec.content || []).forEach(p => {
       if (p.chords) html += `<span class="preview-chord">${p.chords}</span>`;
       html += `<span class="preview-lyric">${p.lyrics}</span>`;
     });
   });
-  if ((song.sections || []).length > 2) html += `<div class="preview-more">+ ${song.sections.length - 2} sección(es) más</div>`;
   document.getElementById(containerId).innerHTML = html;
 }
 

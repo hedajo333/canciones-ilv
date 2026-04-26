@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canciones ILV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --sky: #0284c7; --sky-dark: #0369a1; --sky-light: #e0f2fe; --sky-mid: #38bdf8;
+  --text: #0f172a; --text-muted: #475569; --text-light: #94a3b8;
+  --border: #e2e8f0; --bg: #ffffff; --bg-soft: #f8fafc; --radius: 12px;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* HEADER */
+header { background: var(--bg); border-bottom: 1.5px solid var(--border); padding: 0 1.25rem; position: sticky; top: 0; z-index: 100; }
+.header-inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.logo { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--sky); }
+.logo span { color: var(--text); }
+.btn-add { width: 36px; height: 36px; border-radius: 50%; background: var(--sky); color: white; border: none; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+.btn-add:active { background: var(--sky-dark); }
+
+/* SEARCH */
+.search-wrap { padding: 1rem 1.25rem 0.75rem; max-width: 640px; margin: 0 auto; }
+.search-box { position: relative; }
+.search-box input { width: 100%; padding: 0.65rem 1rem 0.65rem 2.75rem; border: 1.5px solid var(--border); border-radius: 50px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; color: var(--text); background: var(--bg-soft); outline: none; }
+.search-box input:focus { border-color: var(--sky-mid); background: var(--bg); }
+.search-box input::placeholder { color: var(--text-light); }
+.search-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-light); pointer-events: none; }
+.stats-bar { padding: 0 1.25rem 0.75rem; max-width: 640px; margin: 0 auto; font-size: 0.8rem; color: var(--text-muted); }
+
+/* SONG LIST */
+.song-list { max-width: 640px; margin: 0 auto; padding: 0 1.25rem 5rem; }
+.song-item { display: flex; align-items: center; padding: 0.9rem 0; border-bottom: 1px solid var(--border); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.song-item:last-child { border-bottom: none; }
+.song-item:active { background: var(--bg-soft); }
+.song-meta { flex: 1; min-width: 0; }
+.song-title { font-size: 1rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.song-info { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+.song-key { background: var(--sky-light); color: var(--sky-dark); font-weight: 600; font-size: 0.78rem; padding: 0.25rem 0.6rem; border-radius: 20px; margin-left: 0.75rem; flex-shrink: 0; }
+.arrow-icon { color: var(--text-light); margin-left: 0.5rem; flex-shrink: 0; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+.empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+.loading-state { text-align: center; padding: 3rem 1rem; color: var(--text-light); font-size: 0.9rem; }
+
+/* SONG VIEW */
+#song-view { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; overflow-y: auto; }
+.song-header { background: var(--bg); border-bottom: 1.5px solid var(--border); padding: 0 1.25rem; position: sticky; top: 0; z-index: 10; }
+.song-header-inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; height: 56px; gap: 0.75rem; }
+.btn-back { background: none; border: none; cursor: pointer; padding: 0.4rem; color: var(--sky); display: flex; align-items: center; gap: 0.3rem; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500; -webkit-tap-highlight-color: transparent; }
+.song-header-title { flex: 1; font-family: 'DM Serif Display', serif; font-size: 1.05rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* TRANSPOSER */
+.transposer { max-width: 640px; margin: 0 auto; padding: 0.85rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid var(--border); background: var(--bg-soft); }
+.transposer-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; flex-shrink: 0; }
+.transpose-controls { display: flex; align-items: center; gap: 0.5rem; flex: 1; }
+.btn-transpose { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--sky); background: var(--bg); color: var(--sky); font-size: 1.1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+.btn-transpose:active { background: var(--sky); color: white; }
+.key-display { background: var(--sky); color: white; font-weight: 700; font-size: 0.95rem; padding: 0.3rem 0.85rem; border-radius: 20px; min-width: 52px; text-align: center; flex-shrink: 0; }
+.semitone-indicator { font-size: 0.78rem; color: var(--text-muted); }
+.btn-reset { background: none; border: 1px solid var(--border); border-radius: 20px; padding: 0.3rem 0.75rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; color: var(--text-muted); cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0; }
+
+/* SONG CONTENT */
+.song-content { max-width: 640px; margin: 0 auto; padding: 1.25rem 1.25rem 5rem; }
+.song-full-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--text); margin-bottom: 0.25rem; }
+.song-full-info { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.section-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sky-dark); background: var(--sky-light); display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; margin-bottom: 0.6rem; margin-top: 1.25rem; }
+.verse { margin-bottom: 0.5rem; }
+.line-pair { margin-bottom: 0.1rem; }
+.chord-line { display: block; font-size: 0.92rem; font-weight: 600; color: var(--sky); white-space: pre; line-height: 1.3; min-height: 1.2em; }
+.lyric-line { display: block; font-size: 1rem; color: var(--text); white-space: pre-wrap; line-height: 1.5; }
+
+/* FONT CONTROLS */
+.font-controls { position: fixed; bottom: 1.5rem; right: 1.25rem; flex-direction: column; gap: 0.4rem; z-index: 300; display: none; }
+.font-controls.visible { display: flex; }
+.btn-font { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); -webkit-tap-highlight-color: transparent; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); z-index: 500; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg); border-radius: 20px 20px 0 0; width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; padding: 1.5rem 1.25rem 2rem; }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 1.25rem; }
+.modal-title { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--text); margin-bottom: 0.25rem; }
+.modal-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+
+/* PIN */
+.pin-dots { display: flex; gap: 0.75rem; justify-content: center; margin: 1.5rem 0; }
+.pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); transition: all 0.1s; }
+.pin-dot.filled { background: var(--sky); border-color: var(--sky); }
+.pin-dot.error { background: #ef4444; border-color: #ef4444; }
+.pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; max-width: 280px; margin: 0 auto; }
+.pin-key { height: 56px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--bg-soft); font-family: 'DM Sans', sans-serif; font-size: 1.2rem; font-weight: 500; cursor: pointer; color: var(--text); -webkit-tap-highlight-color: transparent; }
+.pin-key:active { background: var(--sky-light); }
+.pin-error { text-align: center; color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem; min-height: 1.2em; }
+
+/* FORM */
+.form-group { margin-bottom: 1rem; }
+.form-label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-textarea { width: 100%; padding: 0.7rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-family: 'Courier New', monospace; font-size: 0.82rem; color: var(--text); background: var(--bg-soft); outline: none; resize: vertical; min-height: 200px; line-height: 1.5; }
+.form-textarea:focus { border-color: var(--sky-mid); background: var(--bg); }
+.form-hint { font-size: 0.78rem; color: var(--text-light); margin-top: 0.3rem; }
+.btn-primary { width: 100%; padding: 0.85rem; background: var(--sky); color: white; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem; -webkit-tap-highlight-color: transparent; }
+.btn-primary:active { background: var(--sky-dark); }
+.btn-primary:disabled { background: var(--text-light); cursor: not-allowed; }
+.btn-secondary { width: 100%; padding: 0.75rem; background: none; color: var(--text-muted); border: 1.5px solid var(--border); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; cursor: pointer; margin-top: 0.5rem; -webkit-tap-highlight-color: transparent; }
+
+/* PROCESSING */
+.processing-box { background: var(--bg-soft); border-radius: var(--radius); padding: 2rem 1.25rem; margin: 1rem 0; text-align: center; }
+.spin { width: 32px; height: 32px; border: 3px solid var(--sky-light); border-top-color: var(--sky); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.processing-box p { font-size: 0.9rem; color: var(--text-muted); }
+
+/* PREVIEW */
+.preview-box { background: var(--bg-soft); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1rem 0; }
+.preview-title { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--text); }
+.preview-info { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; margin-bottom: 0.75rem; }
+.preview-section { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sky-dark); background: var(--sky-light); display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; margin: 0.75rem 0 0.4rem; }
+.preview-chord { font-size: 0.78rem; font-weight: 600; color: var(--sky); white-space: pre; display: block; line-height: 1.2; }
+.preview-lyric { font-size: 0.85rem; color: var(--text); white-space: pre-wrap; display: block; line-height: 1.4; }
+.preview-more { font-size: 0.78rem; color: var(--text-light); margin-top: 0.75rem; }
+
+.status-msg { font-size: 0.85rem; text-align: center; padding: 0.6rem; border-radius: 8px; margin-top: 0.75rem; }
+.status-success { background: #f0fdf4; color: #15803d; }
+.status-error { background: #fef2f2; color: #dc2626; }
+</style>
+</head>
+<body>
+
+<!-- INDEX -->
+<header>
+  <div class="header-inner">
+    <div class="logo">Canciones <span>ILV</span></div>
+    <button class="btn-add" onclick="openPinModal()">+</button>
+  </div>
+</header>
+<div class="search-wrap">
+  <div class="search-box">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="search-input" placeholder="Buscar canción o artista..." oninput="filterSongs(this.value)">
+  </div>
+</div>
+<div class="stats-bar"><span id="stats-text">Cargando...</span></div>
+<div class="song-list" id="song-list"><div class="loading-state">Cargando canciones...</div></div>
+
+<!-- SONG VIEW -->
+<div id="song-view">
+  <div class="song-header">
+    <div class="song-header-inner">
+      <button class="btn-back" onclick="closeSong()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Volver
+      </button>
+      <div class="song-header-title" id="song-header-title"></div>
+    </div>
+  </div>
+  <div class="transposer">
+    <span class="transposer-label">Tono</span>
+    <div class="transpose-controls">
+      <button class="btn-transpose" onclick="transpose(-1)">−</button>
+      <div class="key-display" id="key-display">C</div>
+      <button class="btn-transpose" onclick="transpose(+1)">+</button>
+      <span class="semitone-indicator" id="semitone-indicator"></span>
+    </div>
+    <button class="btn-reset" onclick="resetTranspose()">Original</button>
+  </div>
+  <div class="song-content" id="song-content"></div>
+</div>
+
+<div class="font-controls" id="font-controls">
+  <button class="btn-font" onclick="changeFontSize(1)">A+</button>
+  <button class="btn-font" onclick="changeFontSize(-1)">A−</button>
+</div>
+
+<!-- PIN MODAL -->
+<div class="modal-overlay" id="pin-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Acceso</div>
+    <div class="modal-subtitle">Ingresa el código de 4 dígitos</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="dot-0"></div>
+      <div class="pin-dot" id="dot-1"></div>
+      <div class="pin-dot" id="dot-2"></div>
+      <div class="pin-dot" id="dot-3"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <button class="pin-key" style="font-size:0.85rem;color:var(--text-muted)" onclick="pinCancel()">Cancelar</button>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key" style="font-size:1rem;color:var(--text-muted)" onclick="pinDelete()">⌫</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+  </div>
+</div>
+
+<!-- ADD SONG MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+
+    <div id="step-paste">
+      <div class="modal-title">Agregar canción</div>
+      <div class="modal-subtitle">Copia el texto de Cifraclub y pégalo aquí</div>
+      <div class="form-group">
+        <label class="form-label">Texto de la canción</label>
+        <textarea class="form-textarea" id="raw-text" placeholder="Pega aquí el texto completo de Cifraclub (acordes y letra)..."></textarea>
+        <div class="form-hint">Copia todo: título, artista, secciones, acordes y letra</div>
+      </div>
+      <button class="btn-primary" onclick="processSong()">Procesar con IA →</button>
+      <button class="btn-secondary" onclick="closeAddModal()">Cancelar</button>
+    </div>
+
+    <div id="step-processing" style="display:none;">
+      <div class="processing-box">
+        <div class="spin"></div>
+        <p>Analizando acordes y letra...</p>
+      </div>
+    </div>
+
+    <div id="step-preview" style="display:none;">
+      <div class="modal-title">Vista previa</div>
+      <div class="modal-subtitle">Verifica que todo esté correcto antes de guardar</div>
+      <div class="preview-box" id="preview-content"></div>
+      <button class="btn-primary" onclick="saveSong()" id="btn-save">Guardar canción</button>
+      <button class="btn-secondary" onclick="showStep('paste')">← Editar texto</button>
+      <div id="save-status" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAUOegWFr2lNxmTzAfp88toS2wrgF3JXHI",
+  authDomain: "canciones-ilv.firebaseapp.com",
+  projectId: "canciones-ilv",
+  storageBucket: "canciones-ilv.firebasestorage.app",
+  messagingSenderId: "1001544377171",
+  appId: "1:1001544377171:web:34cb3bd668b627a792f7a6"
+});
+const db = getFirestore(app);
+window._db = db;
+window._col = (name) => collection(db, name);
+window._getDocs = getDocs;
+window._addDoc = addDoc;
+window._query = query;
+window._orderBy = orderBy;
+window.loadSongs();
+</script>
+
+<script>
+const PIN = "1234"; // ← Cambia este código
+const CHROMATIC = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const ENHARMONIC = {"Db":"C#","Eb":"D#","Gb":"F#","Ab":"G#","Bb":"A#"};
+
+let allSongs = [], currentSong = null, currentSemitones = 0, fontSize = 1, parsedSong = null, pinValue = "";
+
+function transposeNote(n, st) {
+  const c = ENHARMONIC[n] || n;
+  const i = CHROMATIC.indexOf(c);
+  return i === -1 ? n : CHROMATIC[((i + st) % 12 + 12) % 12];
+}
+function transposeLine(line, st) {
+  if (!st || !line.trim()) return line;
+  return line.replace(/([A-G][#b]?)(?=[^a-z]|$)/g, (m, note, offset, str) => {
+    const before = str[offset - 1];
+    if (before && /[a-z]/.test(before)) return m;
+    return m.replace(note, transposeNote(note, st));
+  });
+}
+
+// LOAD
+window.loadSongs = async function() {
+  try {
+    const snap = await window._getDocs(window._query(window._col("canciones"), window._orderBy("title")));
+    allSongs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderIndex(allSongs);
+  } catch(e) {
+    document.getElementById("song-list").innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Error al cargar canciones.<br>Verifica la conexión.</p></div>`;
+    document.getElementById("stats-text").textContent = "Sin conexión";
+  }
+};
+
+function renderIndex(songs) {
+  document.getElementById("stats-text").textContent = `${songs.length} canción${songs.length !== 1 ? "es" : ""}`;
+  if (!songs.length) {
+    document.getElementById("song-list").innerHTML = `<div class="empty-state"><div class="icon">🎵</div><p>No hay canciones aún.<br>Toca <strong>+</strong> para agregar la primera.</p></div>`;
+    return;
+  }
+  document.getElementById("song-list").innerHTML = songs.map(s => `
+    <div class="song-item" onclick="openSong('${s.id}')">
+      <div class="song-meta">
+        <div class="song-title">${s.title}</div>
+        <div class="song-info">${s.artist} · ${s.tempo || "Moderado"}</div>
+      </div>
+      <div class="song-key">${s.key || "C"}</div>
+      <div class="arrow-icon">›</div>
+    </div>`).join("");
+}
+
+window.filterSongs = function(q) {
+  renderIndex(q.trim() ? allSongs.filter(s => s.title.toLowerCase().includes(q.toLowerCase()) || s.artist.toLowerCase().includes(q.toLowerCase())) : allSongs);
+};
+
+window.openSong = function(id) {
+  currentSong = allSongs.find(s => s.id === id);
+  currentSemitones = 0;
+  document.getElementById("song-view").style.display = "block";
+  document.getElementById("font-controls").classList.add("visible");
+  document.getElementById("song-header-title").textContent = currentSong.title;
+  renderSong();
+};
+
+window.closeSong = function() {
+  document.getElementById("song-view").style.display = "none";
+  document.getElementById("font-controls").classList.remove("visible");
+};
+
+window.transpose = function(d) {
+  currentSemitones += d;
+  if (currentSemitones > 6) currentSemitones -= 12;
+  if (currentSemitones < -6) currentSemitones += 12;
+  renderSong();
+};
+
+window.resetTranspose = function() { currentSemitones = 0; renderSong(); };
+
+function renderSong() {
+  const s = currentSong, st = currentSemitones;
+  const key = transposeLine(s.key || "C", st);
+  document.getElementById("key-display").textContent = key;
+  document.getElementById("semitone-indicator").textContent = st === 0 ? "" : (st > 0 ? `+${st} st` : `${st} st`);
+  let html = `<div class="song-full-title">${s.title}</div><div class="song-full-info">${s.artist} · Tono original: ${s.key || "C"} · ${s.tempo || "Moderado"}</div>`;
+  (s.sections || []).forEach(sec => {
+    html += `<div class="section-label">${sec.label}</div><div class="verse">`;
+    (sec.content || []).forEach(p => {
+      html += `<div class="line-pair"><span class="chord-line">${transposeLine(p.chords || "", st) || " "}</span><span class="lyric-line">${p.lyrics || ""}</span></div>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById("song-content").innerHTML = html;
+  applyFontSize();
+}
+
+window.changeFontSize = function(d) {
+  fontSize = Math.max(0.75, Math.min(1.4, fontSize + d * 0.1));
+  applyFontSize();
+};
+function applyFontSize() {
+  document.querySelectorAll(".lyric-line").forEach(el => el.style.fontSize = `${fontSize}rem`);
+  document.querySelectorAll(".chord-line").forEach(el => el.style.fontSize = `${fontSize * 0.9}rem`);
+}
+
+// PIN
+window.openPinModal = function() {
+  pinValue = "";
+  updateDots();
+  document.getElementById("pin-error").textContent = "";
+  document.getElementById("pin-modal").classList.add("open");
+};
+function closePinModal() { document.getElementById("pin-modal").classList.remove("open"); }
+window.pinKey = function(d) {
+  if (pinValue.length >= 4) return;
+  pinValue += d;
+  updateDots();
+  if (pinValue.length === 4) setTimeout(checkPin, 150);
+};
+window.pinDelete = function() { pinValue = pinValue.slice(0, -1); updateDots(); };
+window.pinCancel = function() { pinValue = ""; closePinModal(); };
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById(`dot-${i}`);
+    dot.className = "pin-dot" + (i < pinValue.length ? " filled" : "");
+  }
+}
+function checkPin() {
+  if (pinValue === PIN) { closePinModal(); openAddModal(); return; }
+  for (let i = 0; i < 4; i++) { const d = document.getElementById(`dot-${i}`); d.className = "pin-dot error"; }
+  document.getElementById("pin-error").textContent = "Código incorrecto";
+  setTimeout(() => { pinValue = ""; updateDots(); document.getElementById("pin-error").textContent = ""; }, 1200);
+}
+
+// ADD MODAL
+function openAddModal() {
+  document.getElementById("raw-text").value = "";
+  showStep("paste");
+  document.getElementById("add-modal").classList.add("open");
+}
+window.closeAddModal = function() { document.getElementById("add-modal").classList.remove("open"); parsedSong = null; };
+window.showStep = function(step) {
+  ["paste","processing","preview"].forEach(s => document.getElementById(`step-${s}`).style.display = s === step ? "block" : "none");
+};
+
+window.processSong = async function() {
+  const raw = document.getElementById("raw-text").value.trim();
+  if (!raw) return;
+  showStep("processing");
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: `Analiza este texto de una canción con acordes (formato Cifraclub) y devuelve ÚNICAMENTE un JSON válido sin backticks ni texto extra.
+
+Estructura exacta:
+{"title":"...","artist":"...","key":"G","tempo":"Moderado","sections":[{"label":"Verso 1","content":[{"chords":"G          D","lyrics":"línea de letra"},{"chords":"Em         C","lyrics":"otra línea"}]}]}
+
+Reglas:
+- acordes alineados con la sílaba usando espacios
+- chords:"" si la línea no tiene acordes
+- secciones: Intro, Verso 1, Verso 2, Pre-Coro, Coro, Puente, Final
+- key: nota raíz del tono principal
+- tempo: Lento / Moderado / Rápido
+
+Texto:
+${raw}` }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.map(i => i.text || "").join("").replace(/```json|```/g, "").trim();
+    parsedSong = JSON.parse(text);
+    let html = `<div class="preview-title">${parsedSong.title}</div><div class="preview-info">${parsedSong.artist} · Tono: ${parsedSong.key} · ${parsedSong.tempo}</div>`;
+    (parsedSong.sections || []).slice(0, 2).forEach(sec => {
+      html += `<div class="preview-section">${sec.label}</div>`;
+      (sec.content || []).slice(0, 4).forEach(p => {
+        if (p.chords) html += `<span class="preview-chord">${p.chords}</span>`;
+        html += `<span class="preview-lyric">${p.lyrics}</span>`;
+      });
+    });
+    if ((parsedSong.sections || []).length > 2) html += `<div class="preview-more">+ ${parsedSong.sections.length - 2} sección(es) más</div>`;
+    document.getElementById("preview-content").innerHTML = html;
+    document.getElementById("save-status").style.display = "none";
+    document.getElementById("btn-save").disabled = false;
+    document.getElementById("btn-save").textContent = "Guardar canción";
+    showStep("preview");
+  } catch(e) {
+    showStep("paste");
+    alert("Error al procesar. Intenta de nuevo.");
+  }
+};
+
+window.saveSong = async function() {
+  if (!parsedSong) return;
+  const btn = document.getElementById("btn-save");
+  const status = document.getElementById("save-status");
+  btn.disabled = true; btn.textContent = "Guardando...";
+  try {
+    const ref = await window._addDoc(window._col("canciones"), { ...parsedSong, createdAt: new Date().toISOString() });
+    allSongs.push({ id: ref.id, ...parsedSong });
+    allSongs.sort((a, b) => a.title.localeCompare(b.title));
+    renderIndex(allSongs);
+    status.textContent = "✓ Canción guardada exitosamente";
+    status.className = "status-msg status-success";
+    status.style.display = "block";
+    btn.textContent = "¡Guardado!";
+    setTimeout(() => window.closeAddModal(), 1500);
+  } catch(e) {
+    status.textContent = "Error al guardar. Intenta de nuevo.";
+    status.className = "status-msg status-error";
+    status.style.display = "block";
+    btn.disabled = false; btn.textContent = "Guardar canción";
+  }
+};
+</script>
+</body>
+</html>

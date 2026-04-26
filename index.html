@@ -404,54 +404,153 @@ window.showStep = function(step) {
   ["paste","processing","preview"].forEach(s => document.getElementById(`step-${s}`).style.display = s === step ? "block" : "none");
 };
 
-window.processSong = async function() {
+// ── LOCAL PARSER — no API key needed ──────────────────────────
+function isChordLine(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  // A chord line has mostly chord tokens and spaces, very little lowercase text
+  const chordPattern = /\b[A-G][#b]?(maj7?|min|m|dim|aug|sus[24]?|add9?|[0-9]?)[#b]?(\/[A-G][#b]?)?\b/g;
+  const chords = trimmed.match(chordPattern) || [];
+  if (chords.length === 0) return false;
+  // Remove all chord tokens and spaces — if mostly nothing left it's a chord line
+  const remainder = trimmed.replace(chordPattern, "").replace(/[\s|\/\-]+/g, "").trim();
+  return remainder.length < trimmed.length * 0.35;
+}
+
+function detectSectionLabel(line) {
+  const t = line.trim().toLowerCase();
+  if (/^\[?intro\]?/.test(t)) return "Intro";
+  if (/^\[?vers[eo]\s*1\]?/.test(t)) return "Verso 1";
+  if (/^\[?vers[eo]\s*2\]?/.test(t)) return "Verso 2";
+  if (/^\[?vers[eo]\s*3\]?/.test(t)) return "Verso 3";
+  if (/^\[?vers[eo]\]?/.test(t)) return "Verso 1";
+  if (/^\[?pre.?coro\]?/.test(t)) return "Pre-Coro";
+  if (/^\[?coro\]?/.test(t) || /^\[?chorus\]?/.test(t)) return "Coro";
+  if (/^\[?puente\]?/.test(t) || /^\[?bridge\]?/.test(t)) return "Puente";
+  if (/^\[?final\]?/.test(t) || /^\[?outro\]?/.test(t)) return "Final";
+  if (/^\[.+\]$/.test(line.trim())) return line.trim().replace(/[\[\]]/g, "");
+  return null;
+}
+
+function detectKey(sections) {
+  // Collect all chord lines and find first chord
+  for (const sec of sections) {
+    for (const pair of sec.content) {
+      if (pair.chords && pair.chords.trim()) {
+        const m = pair.chords.trim().match(/^([A-G][#b]?)/);
+        if (m) return m[1];
+      }
+    }
+  }
+  return "C";
+}
+
+function parseSongText(raw) {
+  const lines = raw.split("\n");
+  let title = "", artist = "", bodyStart = 0;
+
+  // Try to extract title and artist from first lines
+  for (let i = 0; i < Math.min(6, lines.length); i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    if (!title && !isChordLine(line) && !detectSectionLabel(line)) {
+      title = line; bodyStart = i + 1; continue;
+    }
+    if (title && !artist && !isChordLine(line) && !detectSectionLabel(line)) {
+      artist = line; bodyStart = i + 1; break;
+    }
+  }
+  if (!title) title = "Sin título";
+  if (!artist) artist = "Desconocido";
+
+  // Parse sections
+  const sections = [];
+  let currentSection = null;
+  let pendingChords = "";
+
+  const pushSection = () => { if (currentSection && currentSection.content.length > 0) sections.push(currentSection); };
+
+  let sectionCount = { "Verso": 0 };
+
+  for (let i = bodyStart; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Blank line — flush pending chords
+    if (!trimmed) {
+      if (pendingChords && currentSection) {
+        currentSection.content.push({ chords: pendingChords, lyrics: "" });
+        pendingChords = "";
+      }
+      continue;
+    }
+
+    // Section label
+    const label = detectSectionLabel(trimmed);
+    if (label) {
+      pushSection();
+      currentSection = { label, content: [] };
+      pendingChords = "";
+      continue;
+    }
+
+    // Auto-create first section if none exists
+    if (!currentSection) {
+      currentSection = { label: "Verso 1", content: [] };
+    }
+
+    if (isChordLine(line)) {
+      // Save as pending — next line should be lyrics
+      if (pendingChords) {
+        currentSection.content.push({ chords: pendingChords, lyrics: "" });
+      }
+      pendingChords = trimmed;
+    } else {
+      // Lyrics line
+      currentSection.content.push({ chords: pendingChords, lyrics: trimmed });
+      pendingChords = "";
+    }
+  }
+
+  // Flush last pending
+  if (pendingChords && currentSection) currentSection.content.push({ chords: pendingChords, lyrics: "" });
+  pushSection();
+
+  // If no sections found, create one with all lines
+  if (sections.length === 0) {
+    sections.push({ label: "Verso 1", content: [{ chords: "", lyrics: raw.trim() }] });
+  }
+
+  const key = detectKey(sections);
+  return { title, artist, key, tempo: "Moderado", sections };
+}
+
+window.processSong = function() {
   const raw = document.getElementById("raw-text").value.trim();
   if (!raw) return;
   showStep("processing");
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: `Analiza este texto de una canción con acordes (formato Cifraclub) y devuelve ÚNICAMENTE un JSON válido sin backticks ni texto extra.
-
-Estructura exacta:
-{"title":"...","artist":"...","key":"G","tempo":"Moderado","sections":[{"label":"Verso 1","content":[{"chords":"G          D","lyrics":"línea de letra"},{"chords":"Em         C","lyrics":"otra línea"}]}]}
-
-Reglas:
-- acordes alineados con la sílaba usando espacios
-- chords:"" si la línea no tiene acordes
-- secciones: Intro, Verso 1, Verso 2, Pre-Coro, Coro, Puente, Final
-- key: nota raíz del tono principal
-- tempo: Lento / Moderado / Rápido
-
-Texto:
-${raw}` }]
-      })
-    });
-    const data = await res.json();
-    const text = data.content.map(i => i.text || "").join("").replace(/```json|```/g, "").trim();
-    parsedSong = JSON.parse(text);
-    let html = `<div class="preview-title">${parsedSong.title}</div><div class="preview-info">${parsedSong.artist} · Tono: ${parsedSong.key} · ${parsedSong.tempo}</div>`;
-    (parsedSong.sections || []).slice(0, 2).forEach(sec => {
-      html += `<div class="preview-section">${sec.label}</div>`;
-      (sec.content || []).slice(0, 4).forEach(p => {
-        if (p.chords) html += `<span class="preview-chord">${p.chords}</span>`;
-        html += `<span class="preview-lyric">${p.lyrics}</span>`;
+  setTimeout(() => {
+    try {
+      parsedSong = parseSongText(raw);
+      let html = `<div class="preview-title">${parsedSong.title}</div><div class="preview-info">${parsedSong.artist} · Tono: ${parsedSong.key} · ${parsedSong.tempo}</div>`;
+      (parsedSong.sections || []).slice(0, 2).forEach(sec => {
+        html += `<div class="preview-section">${sec.label}</div>`;
+        (sec.content || []).slice(0, 4).forEach(p => {
+          if (p.chords) html += `<span class="preview-chord">${p.chords}</span>`;
+          html += `<span class="preview-lyric">${p.lyrics}</span>`;
+        });
       });
-    });
-    if ((parsedSong.sections || []).length > 2) html += `<div class="preview-more">+ ${parsedSong.sections.length - 2} sección(es) más</div>`;
-    document.getElementById("preview-content").innerHTML = html;
-    document.getElementById("save-status").style.display = "none";
-    document.getElementById("btn-save").disabled = false;
-    document.getElementById("btn-save").textContent = "Guardar canción";
-    showStep("preview");
-  } catch(e) {
-    showStep("paste");
-    alert("Error al procesar. Intenta de nuevo.");
-  }
+      if ((parsedSong.sections || []).length > 2) html += `<div class="preview-more">+ ${parsedSong.sections.length - 2} sección(es) más</div>`;
+      document.getElementById("preview-content").innerHTML = html;
+      document.getElementById("save-status").style.display = "none";
+      document.getElementById("btn-save").disabled = false;
+      document.getElementById("btn-save").textContent = "Guardar canción";
+      showStep("preview");
+    } catch(e) {
+      showStep("paste");
+      alert("Error al procesar. Intenta de nuevo.");
+    }
+  }, 600);
 };
 
 window.saveSong = async function() {

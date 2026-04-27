@@ -820,7 +820,18 @@ window.saveSong = async function() {
     status.className = "status-msg status-success";
     status.style.display = "block";
     btn.textContent = "¡Guardado!";
-    setTimeout(() => window.closeAddModal(), 1500);
+    // Add new song to picker selection automatically
+    allSongs.push({ id: ref.id, ...parsedSong });
+    allSongs.sort((a, b) => a.title.localeCompare(b.title));
+    setTimeout(() => {
+      window.closeAddModal();
+      if (window._returnToService) {
+        window._returnToService = false;
+        // Auto-add the just-saved song to service
+        addSongToService(ref.id, parsedSong.title, parsedSong.key || "C", parsedSong.artist || "");
+        document.getElementById("service-modal").classList.add("open");
+      }
+    }, 1200);
   } catch(e) {
     status.textContent = "Error al guardar. Intenta de nuevo.";
     status.className = "status-msg status-error";
@@ -958,7 +969,7 @@ function renderHistorial(servicios) {
         : c.nombre;
       return `<div class="servicio-song-row">
         <span class="servicio-song-name">${nameHtml}</span>
-        <span class="servicio-song-key">${c.tono || "?"}</span>
+        <span class="servicio-song-key">${c.tono && c.tono.trim() ? c.tono : (songExistsInCancionero(c.nombre) ? songExistsInCancionero(c.nombre).key || "?" : "?")}</span>
         <span class="servicio-song-artist">${c.artista || ""}</span>
       </div>`;
     }).join("");
@@ -1031,11 +1042,31 @@ window.filterSongPicker = function(q) {
   const filtered = q.trim()
     ? allSongs.filter(s => s.title.toLowerCase().includes(q.toLowerCase()))
     : allSongs;
-  document.getElementById("picker-list").innerHTML = filtered.slice(0, 30).map(s => `
+  const list = document.getElementById("picker-list");
+  if (filtered.length === 0 && q.trim()) {
+    list.innerHTML = `<div style="padding:0.75rem 1rem;">
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.5rem;">No encontrada en el cancionero</div>
+      <button onclick="openAddFromPicker('${q.trim().replace(/'/g,"\'")}');return false;" style="width:100%;padding:0.6rem 1rem;background:var(--sky-light);color:var(--sky-dark);border:1.5px dashed var(--sky-mid);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;text-align:left;">
+        + Agregar "${q.trim()}" al cancionero
+      </button>
+    </div>`;
+    return;
+  }
+  list.innerHTML = filtered.slice(0, 30).map(s => `
     <div class="picker-item" onclick="addSongToService('${s.id}','${s.title.replace(/'/g,"\'")}','${s.key || "C"}','${(s.artist||"").replace(/'/g,"\'")}')">
       <span>${s.title}</span>
       <span class="picker-key">${s.key || "C"}</span>
     </div>`).join("");
+};
+
+window.openAddFromPicker = function(title) {
+  // Close service modal temporarily, open add modal with title prefilled
+  document.getElementById("service-modal").classList.remove("open");
+  document.getElementById("raw-text").value = title + "\n";
+  showStep("paste");
+  document.getElementById("add-modal").classList.add("open");
+  // When song is saved, reopen service modal
+  window._returnToService = true;
 };
 
 window.addSongToService = function(id, title, key, artist) {

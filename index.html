@@ -947,9 +947,32 @@ function normalizeStr(s) {
   return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
 }
 
+const STOP_WORDS = new Set(["el","la","los","las","un","una","unos","unas","de","del","al","a","en","y","o","que","con","por","para","es","su","mi","tu","se","me","te","le","lo","no","si"]);
+
+function keyWords(s) {
+  return normalizeStr(s).split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+}
+
 function songExistsInCancionero(nombre) {
   const n = normalizeStr(nombre);
-  return allSongs.find(s => normalizeStr(s.title) === n || normalizeStr(s.title).includes(n) || n.includes(normalizeStr(s.title)));
+  // 1. Exact match
+  let match = allSongs.find(s => normalizeStr(s.title) === n);
+  if (match) return match;
+  // 2. One contains the other
+  match = allSongs.find(s => normalizeStr(s.title).includes(n) || n.includes(normalizeStr(s.title)));
+  if (match) return match;
+  // 3. Keyword match — 60% threshold
+  const wordsA = keyWords(nombre);
+  if (!wordsA.length) return null;
+  let bestMatch = null, bestScore = 0;
+  for (const song of allSongs) {
+    const wordsB = keyWords(song.title);
+    if (!wordsB.length) continue;
+    const common = wordsA.filter(w => wordsB.some(wb => wb.includes(w) || w.includes(wb))).length;
+    const score = common / Math.max(wordsA.length, wordsB.length);
+    if (score > bestScore) { bestScore = score; bestMatch = song; }
+  }
+  return bestScore >= 0.6 ? bestMatch : null;
 }
 
 function renderHistorial(servicios) {
